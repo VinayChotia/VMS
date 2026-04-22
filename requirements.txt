@@ -2,7 +2,7 @@ asgiref==3.11.1
 attrs==26.1.0
 channels==4.3.2
 channels_redis==4.3.0
-Django == 6.0.0
+Django == 5.2.13
 django-cors-headers==4.9.0
 django-filter==25.2
 djangorestframework==3.17.1
