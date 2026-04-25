@@ -5,7 +5,7 @@ These settings are for production environment.
 
 from .base import *
 import os
-# import django_heroku  # Optional: for Heroku deployment
+# Remove django_heroku import
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Should be set via environment variable
@@ -77,6 +77,8 @@ CACHES = {
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         }
+    } if os.environ.get('REDIS_URL') else {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
 
@@ -88,6 +90,10 @@ CHANNEL_LAYERS = {
             "hosts": [os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1')],
         },
     },
+} if os.environ.get('REDIS_URL') else {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
 }
 
 # Static files - Production (use WhiteNoise or CDN)
@@ -96,12 +102,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files in production
 # Consider using cloud storage like AWS S3, Google Cloud Storage, etc.
-# Example for AWS S3:
-# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-# AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-# AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-# AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-# AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME')
 
 # Logging for production
 LOGGING = {
@@ -140,6 +140,3 @@ LOGGING = {
 
 # Ensure logs directory exists
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
-
-# Optional: Activate Django Heroku for Heroku deployment
-# django_heroku.settings(locals())
