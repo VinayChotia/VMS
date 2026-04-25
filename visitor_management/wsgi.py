@@ -1,16 +1,17 @@
-"""
-WSGI config for visitor_management project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
-"""
+# visitor_management/wsgi.py
 
 import os
 
-from django.core.wsgi import get_wsgi_application
+# Set settings module FIRST
+# os.environ.setdefault("DJANGO_SETTINGS_MODULE", "visitor_management.settings")
+environment = os.environ.get('DJANGO_ENV', 'production')
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "visitor_management.settings")
+if environment == 'development':
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'visitor_management.settings.development')
+else:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'visitor_management.settings.production')
+
+# Now import Django
+from django.core.wsgi import get_wsgi_application
 
 application = get_wsgi_application()

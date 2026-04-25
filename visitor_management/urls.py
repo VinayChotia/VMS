@@ -6,6 +6,7 @@ from rest_framework_simplejwt.views import (
 )
 from account.views import LogoutView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -19,4 +20,10 @@ urlpatterns = [
     path('api/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/logout/', LogoutView.as_view(), name='logout'),
     path('api/notifications/', include('notification.urls')),
+
+    
 ]
+from django.conf.urls.static import static
+if settings.DEBUG:
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+        urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
