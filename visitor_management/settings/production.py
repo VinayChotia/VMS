@@ -11,7 +11,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DB_NAME', 'vms-database'),
         'USER': os.environ.get('DB_USER', 'zjoatpflyp@vms-backend-drf'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'ocLvnMjGLP$vdi6j'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'AzureDB2026'),
         'HOST': os.environ.get('DB_HOST', 'vms-backend-drf.postgres.database.azure.com'),
         'PORT': os.environ.get('DB_PORT', '5432'),
         'CONN_MAX_AGE': 0,
