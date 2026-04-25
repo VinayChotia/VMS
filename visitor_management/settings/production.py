@@ -5,7 +5,7 @@ These settings are for production environment.
 
 from .base import *
 import os
-import django_heroku  # Optional: for Heroku deployment
+# import django_heroku  # Optional: for Heroku deployment
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Should be set via environment variable
