@@ -18,25 +18,32 @@ DATABASES = {
     }
 }
 
-# Security settings
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
-CSRF_COOKIE_SECURE = False
-CORS_ALLOW_ALL_ORIGINS = True
+# Security settings for HTTPS
+SECURE_SSL_REDIRECT = False  # Azure handles SSL
+SESSION_COOKIE_SECURE = True  # Send cookie only over HTTPS
+CSRF_COOKIE_SECURE = True     # Send CSRF cookie only over HTTPS
+CSRF_USE_SESSIONS = False      # Store CSRF token in cookie (not session)
+CSRF_COOKIE_HTTPONLY = False   # Allow JavaScript to read CSRF token
 
-# Static files configuration with WhiteNoise
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
+# CSRF trusted origins - ADD YOUR DOMAIN HERE
+CSRF_TRUSTED_ORIGINS = [
+    'https://vms-backend-drf-avdygnb6afcchbhg.centralindia-01.azurewebsites.net',
+    'https://*.azurewebsites.net',
+]
+
+# Static files
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 # Ensure WhiteNoise is in middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add this
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
