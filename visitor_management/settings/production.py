@@ -19,6 +19,7 @@ DATABASES = {
 }
 
 
+
 REDIS_HOST = os.environ.get('REDIS_HOST')
 REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
@@ -27,11 +28,7 @@ if REDIS_HOST and REDIS_PASSWORD:
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
             "CONFIG": {
-                "hosts": [{
-                    "address": f"rediss://{REDIS_HOST}:6380",
-                    "password": REDIS_PASSWORD,
-                    "ssl": True
-                }],
+                "hosts": [f"rediss://:{REDIS_PASSWORD}@{REDIS_HOST}:6380/0"],
             },
         },
     }
