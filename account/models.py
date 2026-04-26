@@ -605,84 +605,84 @@ class Visitor(models.Model):
     
     # In your models.py, update the Visitor model's check_approval_status method:
 
-    def check_approval_status(self):
-        """
-        Update visitor status based on section approvals.
-        Status becomes 'partially_approved' if at least one section is approved 
-        by consensus (both approvers) and others are pending.
-        """
-        total_approvers = self.selected_approvers.count()
+    # def check_approval_status(self):
+    #     """
+    #     Update visitor status based on section approvals.
+    #     Status becomes 'partially_approved' if at least one section is approved 
+    #     by consensus (both approvers) and others are pending.
+    #     """
+    #     total_approvers = self.selected_approvers.count()
         
-        # Get all section approvals
-        all_section_approvals = self.visitor_section_approvals.all()
+    #     # Get all section approvals
+    #     all_section_approvals = self.visitor_section_approvals.all()
         
-        if not all_section_approvals.exists():
-            # Fall back to legacy approval logic if no sections
-            total_approvers = self.selected_approvers.count()
-            approved_count = self.visitor_approvals.filter(status='approved').count()
-            rejected_count = self.visitor_approvals.filter(status='rejected').count()
+    #     if not all_section_approvals.exists():
+    #         # Fall back to legacy approval logic if no sections
+    #         total_approvers = self.selected_approvers.count()
+    #         approved_count = self.visitor_approvals.filter(status='approved').count()
+    #         rejected_count = self.visitor_approvals.filter(status='rejected').count()
             
-            if rejected_count > 0:
-                new_status = 'rejected'
-            elif approved_count >= 2:
-                new_status = 'approved'
-            elif approved_count > 0:
-                new_status = 'partially_approved'
-            else:
-                new_status = 'pending'
-        else:
-            # Get unique sections
-            section_ids = all_section_approvals.values_list('section_id', flat=True).distinct()
+    #         if rejected_count > 0:
+    #             new_status = 'rejected'
+    #         elif approved_count >= 2:
+    #             new_status = 'approved'
+    #         elif approved_count > 0:
+    #             new_status = 'partially_approved'
+    #         else:
+    #             new_status = 'pending'
+    #     else:
+    #         # Get unique sections
+    #         section_ids = all_section_approvals.values_list('section_id', flat=True).distinct()
             
-            # Track section statuses
-            sections_approved = 0
-            sections_partially_approved = 0
-            sections_pending = 0
-            sections_rejected = 0
+    #         # Track section statuses
+    #         sections_approved = 0
+    #         sections_partially_approved = 0
+    #         sections_pending = 0
+    #         sections_rejected = 0
             
-            for section_id in section_ids:
-                section_approvals = all_section_approvals.filter(section_id=section_id)
-                approved_count = section_approvals.filter(status='approved').count()
-                rejected_count = section_approvals.filter(status='rejected').count()
+    #         for section_id in section_ids:
+    #             section_approvals = all_section_approvals.filter(section_id=section_id)
+    #             approved_count = section_approvals.filter(status='approved').count()
+    #             rejected_count = section_approvals.filter(status='rejected').count()
                 
-                if total_approvers == 2:
-                    # For 2 approvers, need BOTH to approve for section to be approved
-                    if rejected_count > 0:
-                        sections_rejected += 1
-                    elif approved_count == 2:
-                        sections_approved += 1
-                    elif approved_count == 1:
-                        sections_partially_approved += 1
-                    else:
-                        sections_pending += 1
-                else:
-                    # For other numbers of approvers
-                    if rejected_count > 0:
-                        sections_rejected += 1
-                    elif approved_count == total_approvers:
-                        sections_approved += 1
-                    elif approved_count > 0:
-                        sections_partially_approved += 1
-                    else:
-                        sections_pending += 1
+    #             if total_approvers == 2:
+    #                 # For 2 approvers, need BOTH to approve for section to be approved
+    #                 if rejected_count > 0:
+    #                     sections_rejected += 1
+    #                 elif approved_count == 2:
+    #                     sections_approved += 1
+    #                 elif approved_count == 1:
+    #                     sections_partially_approved += 1
+    #                 else:
+    #                     sections_pending += 1
+    #             else:
+    #                 # For other numbers of approvers
+    #                 if rejected_count > 0:
+    #                     sections_rejected += 1
+    #                 elif approved_count == total_approvers:
+    #                     sections_approved += 1
+    #                 elif approved_count > 0:
+    #                     sections_partially_approved += 1
+    #                 else:
+    #                     sections_pending += 1
             
-            # Determine overall status
-            if sections_rejected > 0:
-                new_status = 'rejected'
-            elif sections_approved > 0 and (sections_pending > 0 or sections_partially_approved > 0):
-                new_status = 'partially_approved'  # At least one section approved, some pending
-            elif sections_approved > 0 and sections_pending == 0 and sections_partially_approved == 0:
-                new_status = 'approved'  # All sections approved
-            elif sections_partially_approved > 0:
-                new_status = 'partially_approved'  # Some sections have partial approval
-            else:
-                new_status = 'pending'
+    #         # Determine overall status
+    #         if sections_rejected > 0:
+    #             new_status = 'rejected'
+    #         elif sections_approved > 0 and (sections_pending > 0 or sections_partially_approved > 0):
+    #             new_status = 'partially_approved'  # At least one section approved, some pending
+    #         elif sections_approved > 0 and sections_pending == 0 and sections_partially_approved == 0:
+    #             new_status = 'approved'  # All sections approved
+    #         elif sections_partially_approved > 0:
+    #             new_status = 'partially_approved'  # Some sections have partial approval
+    #         else:
+    #             new_status = 'pending'
         
-        if self.status != new_status:
-            self.status = new_status
-            self.save(update_fields=['status'])
+    #     if self.status != new_status:
+    #         self.status = new_status
+    #         self.save(update_fields=['status'])
         
-        return self.status
+    #     return self.status
 
     def get_approved_sections_list(self):
         """Get list of sections that have been approved for this visitor"""
@@ -1200,11 +1200,76 @@ class Visitor(models.Model):
         
     #     return self.status
 
+    # def update_overall_visitor_status(self):
+    #     """
+    #     Update the overall visitor status based on section approvals.
+    #     Status becomes 'partially_approved' if at least one section is fully approved 
+    #     (both approvers approved it), even if other sections are rejected.
+    #     """
+    #     all_section_approvals = self.visitor_section_approvals.all()
+        
+    #     if not all_section_approvals.exists():
+    #         # No sections - use legacy approval logic
+    #         total_approvers = self.selected_approvers.count()
+    #         approved_count = self.visitor_approvals.filter(status='approved').count()
+    #         rejected_count = self.visitor_approvals.filter(status='rejected').count()
+            
+    #         if rejected_count > 0:
+    #             new_status = 'rejected'
+    #         elif approved_count == total_approvers and total_approvers > 0:
+    #             new_status = 'approved'
+    #         elif approved_count > 0:
+    #             new_status = 'partially_approved'
+    #         else:
+    #             new_status = 'pending'
+    #     else:
+    #         # Get unique sections
+    #         section_ids = all_section_approvals.values_list('section_id', flat=True).distinct()
+    #         total_approvers = self.selected_approvers.count()
+            
+    #         sections_fully_approved = 0  # Both approvers approved
+    #         sections_rejected = 0
+            
+    #         for section_id in section_ids:
+    #             section_approvals = all_section_approvals.filter(section_id=section_id)
+    #             approved_count = section_approvals.filter(status='approved').count()
+    #             rejected_count = section_approvals.filter(status='rejected').count()
+                
+    #             if total_approvers == 2:
+    #                 if rejected_count > 0:
+    #                     sections_rejected += 1
+    #                 elif approved_count == 2:
+    #                     sections_fully_approved += 1
+    #             else:
+    #                 if rejected_count > 0:
+    #                     sections_rejected += 1
+    #                 elif approved_count == total_approvers:
+    #                     sections_fully_approved += 1
+            
+    #         # Determine overall status
+    #         if sections_fully_approved > 0:
+    #             # CRITICAL: If ANY section is fully approved, status is partially_approved
+    #             new_status = 'partially_approved'
+    #         elif sections_rejected > 0:
+    #             new_status = 'rejected'
+    #         else:
+    #             new_status = 'pending'
+        
+    #     if self.status != new_status:
+    #         self.status = new_status
+    #         self.save(update_fields=['status'])
+    #         print(f"Updated visitor status to {new_status}")
+        
+    #     return self.status
+    
     def update_overall_visitor_status(self):
         """
         Update the overall visitor status based on section approvals.
-        Status becomes 'partially_approved' if at least one section is fully approved 
-        (both approvers approved it), even if other sections are rejected.
+        Status becomes:
+        - 'approved' if at least ONE section is fully approved (both approvers approved it)
+        - 'rejected' if ALL sections are rejected
+        - 'pending' if no approvals yet
+        - 'partially_approved' for any other case (won't be used with consensus)
         """
         all_section_approvals = self.visitor_section_approvals.all()
         
@@ -1246,22 +1311,24 @@ class Visitor(models.Model):
                     elif approved_count == total_approvers:
                         sections_fully_approved += 1
             
-            # Determine overall status
+            # CRITICAL FIX: Determine overall status
             if sections_fully_approved > 0:
-                # CRITICAL: If ANY section is fully approved, status is partially_approved
-                new_status = 'partially_approved'
+                # If ANY section is fully approved, status is 'approved' (not partially_approved)
+                new_status = 'approved'
             elif sections_rejected > 0:
+                # All sections are rejected
                 new_status = 'rejected'
             else:
+                # No approvals yet
                 new_status = 'pending'
         
         if self.status != new_status:
             self.status = new_status
             self.save(update_fields=['status'])
-            print(f"Updated visitor status to {new_status}")
+            print(f"Updated visitor status from {self.status} to {new_status}")
         
         return self.status
-    
+
     def check_approval_status(self):
         """Public method to check and update status"""
         return self.update_overall_visitor_status()
