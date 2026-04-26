@@ -36,6 +36,8 @@ DATABASES = {
 
 # CORS Settings - Production (restrict origins)
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = ['*']
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
 # Example: CORS_ALLOWED_ORIGINS = ['https://yourdomain.com', 'https://www.yourdomain.com']
 
