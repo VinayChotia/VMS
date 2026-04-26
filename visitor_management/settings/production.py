@@ -96,6 +96,20 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Media files in production
 # Consider using cloud storage like AWS S3, Google Cloud Storage, etc.
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Force Django to serve media files even in production (for testing only)
+# WARNING: Only use this for testing, not for production!
+import warnings
+warnings.warn("Media files are being served by Django. This is inefficient for production!")
+
+# Disable security for media serving (for testing only)
+SECURE_SSL_REDIRECT = False  # Temporarily disable for testing
+
+# Make sure the media directory exists
+os.makedirs(MEDIA_ROOT, exist_ok=True)
+
 # Logging for production
 LOGGING = {
     'version': 1,

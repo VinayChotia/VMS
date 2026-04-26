@@ -7,6 +7,9 @@ from rest_framework_simplejwt.views import (
 from account.views import LogoutView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from django.conf import settings
+from django.views.static import serve
+from django.urls import re_path
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,7 +26,17 @@ urlpatterns = [
 
     
 ]
-from django.conf.urls.static import static
+# Serve media files in ALL environments (including production)
+# This forces Django to serve media files even when DEBUG=False
 if settings.DEBUG:
-        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-        urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Development mode - usual serving
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+else:
+    # Production mode - force Django to serve media files (for testing ONLY)
+    # WARNING: This is inefficient for production use
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]
+
+
