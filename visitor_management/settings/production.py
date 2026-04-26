@@ -1,82 +1,135 @@
+"""
+Production settings for visitor_management project.
+These settings are for production environment.
+"""
+
 from .base import *
 import os
+# Remove django_heroku import
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-key-for-dev')
+# SECURITY WARNING: keep the secret key used in production secret!
+# Should be set via environment variable
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'your-production-secret-key-here')
+
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-ALLOWED_HOSTS = ['*']
 
+# Production allowed hosts - MUST be configured properly
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+# Example: ALLOWED_HOSTS = ['yourdomain.com', 'www.yourdomain.com', 'your-server-ip']
+
+# Database - Production database (use environment variables)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'vms-database',
-        'USER': 'zjoatpflyp',
-        'PASSWORD': 'Hello$321',
-        'HOST': 'vms-backend-drf.postgres.database.azure.com',
-        'PORT': '5432',
-        'CONN_MAX_AGE': 0,
-        'OPTIONS': {'sslmode': 'require'},
+        'NAME': os.environ.get('DB_NAME', 'visitor_db_prod'),
+        'USER': os.environ.get('DB_USER', ''),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+        'CONN_MAX_AGE': 60,  # Connection persistence
+        'OPTIONS': {
+            'sslmode': 'require',  # Enable SSL for production database
+        },
     }
 }
 
+# CORS Settings - Production (restrict origins)
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+# Example: CORS_ALLOWED_ORIGINS = ['https://yourdomain.com', 'https://www.yourdomain.com']
 
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+# Example: CSRF_TRUSTED_ORIGINS = ['https://yourdomain.com']
 
-REDIS_HOST = os.environ.get('REDIS_HOST')
-REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
+# Security Settings for Production
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
-if REDIS_HOST and REDIS_PASSWORD:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [f"rediss://:{REDIS_PASSWORD}@{REDIS_HOST}:6380/0"],
-            },
-        },
+# JWT Settings - Production (more secure)
+SIMPLE_JWT = {
+    **SIMPLE_JWT,  # Inherit from base
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Shorter lifetime for production
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=12),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+# Email backend for production
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+
+# Cache backend for production (using Redis or Memcached)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    } if os.environ.get('REDIS_URL') else {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
-else:
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels.layers.InMemoryChannelLayer"
-        },
-    }
+}
 
-# Security settings for HTTPS
-SECURE_SSL_REDIRECT = False  # Azure handles SSL
-SESSION_COOKIE_SECURE = True  # Send cookie only over HTTPS
-CSRF_COOKIE_SECURE = True     # Send CSRF cookie only over HTTPS
-CSRF_USE_SESSIONS = False      # Store CSRF token in cookie (not session)
-CSRF_COOKIE_HTTPONLY = False   # Allow JavaScript to read CSRF token
+# CHANNEL_LAYERS - No Redis required
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    },
+}
 
-# CORS settings
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-
-# CSRF trusted origins - ADD YOUR DOMAIN HERE
-CSRF_TRUSTED_ORIGINS = [
-    'https://vms-backend-drf-avdygnb6afcchbhg.centralindia-01.azurewebsites.net',
-    'https://*.azurewebsites.net',
-]
-
-# Static files
-STATIC_URL = '/static/'
+# Static files - Production (use WhiteNoise or CDN)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Ensure WhiteNoise is in middleware
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+# Media files in production
+# Consider using cloud storage like AWS S3, Google Cloud Storage, etc.
 
+# Logging for production
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'handlers': {'console': {'class': 'logging.StreamHandler'}},
-    'root': {'handlers': ['console'], 'level': 'INFO'},
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/django.errors.log'),
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
 }
+
+# Ensure logs directory exists
+os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
