@@ -18,6 +18,20 @@ DATABASES = {
     }
 }
 
+
+import os
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                f"rediss://:{os.environ.get('REDIS_PASSWORD')}@{os.environ.get('REDIS_HOST')}:6380/0"
+            ],
+        },
+    },
+}
+
 # Security settings for HTTPS
 SECURE_SSL_REDIRECT = False  # Azure handles SSL
 SESSION_COOKIE_SECURE = True  # Send cookie only over HTTPS
