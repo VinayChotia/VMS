@@ -19,18 +19,28 @@ DATABASES = {
 }
 
 
-import os
+REDIS_HOST = os.environ.get('REDIS_HOST')
+REDIS_PASSWORD = os.environ.get('REDIS_PASSWORD')
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [
-                f"rediss://:{os.environ.get('REDIS_PASSWORD')}@{os.environ.get('REDIS_HOST')}:6380/0"
-            ],
+if REDIS_HOST and REDIS_PASSWORD:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [{
+                    "address": f"rediss://{REDIS_HOST}:6380",
+                    "password": REDIS_PASSWORD,
+                    "ssl": True
+                }],
+            },
         },
-    },
-}
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer"
+        },
+    }
 
 # Security settings for HTTPS
 SECURE_SSL_REDIRECT = False  # Azure handles SSL
