@@ -4793,65 +4793,108 @@ import base64
 #             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# class VisitorQRCodeView(APIView):
+#     """
+#     Generate QR code for a visitor
+#     URL: /account/api/visitors/<int:pk>/qr-code/
+#     """
+#     permission_classes = [IsAuthenticated, IsEmployee]
+    
+#     def get(self, request, pk):
+#         try:
+#             visitor = Visitor.objects.get(pk=pk)
+#             site = visitor.site
+            
+#             # Get frontend URL from settings
+#             from django.conf import settings
+#             frontend_url = getattr(settings, 'FRONTEND_URL', 'https://vmsfrontend2026.z29.web.core.windows.net')
+            
+#             # Get accessible sections for QR data
+#             accessible_sections = []
+#             for section in visitor.get_consensus_approved_sections():
+#                 accessible_sections.append({
+#                     'id': section.id,
+#                     'name': section.name,
+#                     'requires_escort': section.requires_escort
+#                 })
+            
+#             # IMPORTANT: This is the data that goes into the QR code
+#             qr_data = {
+#                 'type': 'visitor_checkin',
+#                 'visitor_id': visitor.id,
+#                 'redirect_url': f"{frontend_url}/#/visitor/{visitor.id}",
+#                 'visitor_info': {
+#                     'visitor_id': visitor.id,
+#                     'full_name': visitor.full_name,
+#                     'email': visitor.email,
+#                     'phone_number': visitor.phone_number,
+#                     'company_name': visitor.company_name,
+#                     'purpose_of_visit': visitor.purpose_of_visit,
+#                     'designated_check_in': visitor.designated_check_in.isoformat() if visitor.designated_check_in else None,
+#                     'designated_check_out': visitor.designated_check_out.isoformat() if visitor.designated_check_out else None,
+#                     'site': site.name if site else None,
+#                     'status': visitor.status,
+#                     'accessible_sections': accessible_sections
+#                 },
+#                 'api_base_url': 'https://vms-backend-drf-avdygnb6afcchbhg.centralindia-01.azurewebsites.net'
+#             }
+            
+#             # Debug mode - return JSON instead of image
+#             debug_mode = request.query_params.get('debug', 'false').lower() == 'true'
+#             if debug_mode:
+#                 return Response({
+#                     'visitor_id': visitor.id,
+#                     'visitor_name': visitor.full_name,
+#                     'qr_data': qr_data,
+#                     'redirect_url': qr_data['redirect_url'],
+#                     'full_json': json.dumps(qr_data, indent=2)
+#                 })
+            
+#             # Generate QR code with the FULL DATA (not just email)
+#             qr_buffer = IDCardGenerator.generate_qr_code(visitor.id, qr_data)
+            
+#             # Return as image response
+#             return HttpResponse(
+#                 qr_buffer.getvalue(),
+#                 content_type='image/png',
+#                 headers={
+#                     'Content-Disposition': f'attachment; filename="visitor_{visitor.id}_qrcode.png"'
+#                 }
+#             )
+            
+#         except Visitor.DoesNotExist:
+#             return Response({'error': 'Visitor not found'}, status=status.HTTP_404_NOT_FOUND)
+#         except Exception as e:
+#             print(f"Error generating QR code: {str(e)}")
+#             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# account/views.py - Update VisitorQRCodeView
+
 class VisitorQRCodeView(APIView):
     """
     Generate QR code for a visitor
     URL: /account/api/visitors/<int:pk>/qr-code/
+    When scanned, opens the visitor profile page in the Flutter web app
     """
     permission_classes = [IsAuthenticated, IsEmployee]
     
     def get(self, request, pk):
         try:
             visitor = Visitor.objects.get(pk=pk)
-            site = visitor.site
             
             # Get frontend URL from settings
             from django.conf import settings
             frontend_url = getattr(settings, 'FRONTEND_URL', 'https://vmsfrontend2026.z29.web.core.windows.net')
             
-            # Get accessible sections for QR data
-            accessible_sections = []
-            for section in visitor.get_consensus_approved_sections():
-                accessible_sections.append({
-                    'id': section.id,
-                    'name': section.name,
-                    'requires_escort': section.requires_escort
-                })
+            # The QR code will contain this URL
+            # Phone cameras recognize "https://" and will open it in browser
+            redirect_url = f"{frontend_url}/#/visitor/{visitor.id}"
             
-            # IMPORTANT: This is the data that goes into the QR code
-            qr_data = {
-                'type': 'visitor_checkin',
-                'visitor_id': visitor.id,
-                'redirect_url': f"{frontend_url}/#/visitor/{visitor.id}",
-                'visitor_info': {
-                    'visitor_id': visitor.id,
-                    'full_name': visitor.full_name,
-                    'email': visitor.email,
-                    'phone_number': visitor.phone_number,
-                    'company_name': visitor.company_name,
-                    'purpose_of_visit': visitor.purpose_of_visit,
-                    'designated_check_in': visitor.designated_check_in.isoformat() if visitor.designated_check_in else None,
-                    'designated_check_out': visitor.designated_check_out.isoformat() if visitor.designated_check_out else None,
-                    'site': site.name if site else None,
-                    'status': visitor.status,
-                    'accessible_sections': accessible_sections
-                },
-                'api_base_url': 'https://vms-backend-drf-avdygnb6afcchbhg.centralindia-01.azurewebsites.net'
-            }
+            print(f"📱 Generating QR code for visitor {visitor.id} with URL: {redirect_url}")
             
-            # Debug mode - return JSON instead of image
-            debug_mode = request.query_params.get('debug', 'false').lower() == 'true'
-            if debug_mode:
-                return Response({
-                    'visitor_id': visitor.id,
-                    'visitor_name': visitor.full_name,
-                    'qr_data': qr_data,
-                    'redirect_url': qr_data['redirect_url'],
-                    'full_json': json.dumps(qr_data, indent=2)
-                })
-            
-            # Generate QR code with the FULL DATA (not just email)
-            qr_buffer = IDCardGenerator.generate_qr_code(visitor.id, qr_data)
+            # Generate QR code with the URL (not JSON data)
+            qr_buffer = IDCardGenerator.generate_qr_code(visitor.id, redirect_url)
             
             # Return as image response
             return HttpResponse(

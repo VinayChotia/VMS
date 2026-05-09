@@ -92,38 +92,78 @@ class IDCardGenerator:
     
     # account/card_utils.py
 
+    # @staticmethod
+    # def generate_qr_code(visitor_id, visitor_data):
+    #     """
+    #     Generate QR code containing visitor information
+    #     visitor_data should be a DICTIONARY with redirect_url
+    #     """
+    #     import json
+        
+    #     # Ensure visitor_data is a dictionary
+    #     if not isinstance(visitor_data, dict):
+    #         raise ValueError(f"visitor_data must be a dictionary, got {type(visitor_data)}")
+        
+    #     # Make sure redirect_url is included
+    #     if 'redirect_url' not in visitor_data:
+    #         # Add redirect URL if missing
+    #         from django.conf import settings
+    #         frontend_url = getattr(settings, 'FRONTEND_URL', 'https://vmsfrontend2026.z29.web.core.windows.net')
+    #         visitor_data['redirect_url'] = f"{frontend_url}/#/visitor/{visitor_data.get('visitor_id')}"
+        
+    #     # Convert to JSON string
+    #     qr_text = json.dumps(visitor_data, default=str)
+        
+    #     print(f"📱 Encoding QR code with data: {qr_text[:200]}...")  # Debug log
+        
+    #     # Generate QR code with larger size for more data
+    #     qr = qrcode.QRCode(
+    #         version=5,  # Increased version for more data (was 1)
+    #         error_correction=qrcode.constants.ERROR_CORRECT_Q,
+    #         box_size=10,
+    #         border=4,
+    #     )
+    #     qr.add_data(qr_text)
+    #     qr.make(fit=True)
+        
+    #     # Create QR code image
+    #     qr_image = qr.make_image(fill_color="black", back_color="white")
+        
+    #     # Save to bytes
+    #     buffer = BytesIO()
+    #     qr_image.save(buffer, format='PNG')
+    #     buffer.seek(0)
+        
+    #     return buffer
+    
+
     @staticmethod
     def generate_qr_code(visitor_id, visitor_data):
         """
-        Generate QR code containing visitor information
-        visitor_data should be a DICTIONARY with redirect_url
+        Generate QR code containing a URL that redirects to the visitor page
+        IMPORTANT: QR code must contain a URL, not just JSON data
         """
         import json
         
-        # Ensure visitor_data is a dictionary
-        if not isinstance(visitor_data, dict):
-            raise ValueError(f"visitor_data must be a dictionary, got {type(visitor_data)}")
+        # Get frontend URL from settings
+        from django.conf import settings
+        frontend_url = getattr(settings, 'FRONTEND_URL', 'https://vmsfrontend2026.z29.web.core.windows.net')
         
-        # Make sure redirect_url is included
-        if 'redirect_url' not in visitor_data:
-            # Add redirect URL if missing
-            from django.conf import settings
-            frontend_url = getattr(settings, 'FRONTEND_URL', 'https://vmsfrontend2026.z29.web.core.windows.net')
-            visitor_data['redirect_url'] = f"{frontend_url}/#/visitor/{visitor_data.get('visitor_id')}"
+        # Create the redirect URL (this is what the QR code should contain)
+        # Phone cameras recognize "https://" as a URL to open
+        redirect_url = f"{frontend_url}/#/visitor/{visitor_id}"
         
-        # Convert to JSON string
-        qr_text = json.dumps(visitor_data, default=str)
+        print(f"📱 Generating QR code with URL: {redirect_url}")
         
-        print(f"📱 Encoding QR code with data: {qr_text[:200]}...")  # Debug log
-        
-        # Generate QR code with larger size for more data
+        # Generate QR code with URL (not JSON)
+        # This ensures the phone's camera opens the browser instead of showing text
         qr = qrcode.QRCode(
-            version=5,  # Increased version for more data (was 1)
-            error_correction=qrcode.constants.ERROR_CORRECT_Q,
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
             box_size=10,
             border=4,
         )
-        qr.add_data(qr_text)
+        qr.add_data(redirect_url)  # ← USE URL STRING, NOT JSON
         qr.make(fit=True)
         
         # Create QR code image
@@ -135,7 +175,6 @@ class IDCardGenerator:
         buffer.seek(0)
         
         return buffer
-    
     
     @staticmethod
     def generate_id_card(visitor, qr_code_buffer, with_photo=False):
