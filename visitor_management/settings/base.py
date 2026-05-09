@@ -134,3 +134,5 @@ ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp']
 
 # Maximum file size (5MB)
 MAX_UPLOAD_SIZE = 5242880
+
+FRONTEND_URL = 'https://vmsfrontend2026.z29.web.core.windows.net'
