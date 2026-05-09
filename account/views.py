@@ -16,6 +16,7 @@ from .serializers import (
     LoginSerializer, SectionSerializer, SiteSerializer, VisitorCheckInSerializer, VisitorCheckOutSerializer, VisitorSectionApprovalSerializer, VisitorSectionTrackingSerializer, VisitorSerializer, VisitorApprovalResponseSerializer
 )
 from .permissions import IsEmployee
+import json
 
 # Authentication Views
 class RegisterView(APIView):
@@ -4741,13 +4742,13 @@ class VisitorQRCodeView(APIView):
             site = visitor.site
             
             # Check permission
-            if not (request.user.is_superuser or 
-                    visitor.created_by == request.user or
-                    visitor.selected_approvers.filter(id=request.user.id).exists()):
-                return Response(
-                    {'error': 'You do not have permission to view this visitor\'s QR code'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+            # if not (request.user.is_superuser or 
+            #         visitor.created_by == request.user or
+            #         visitor.selected_approvers.filter(id=request.user.id).exists()):
+            #     return Response(
+            #         {'error': 'You do not have permission to view this visitor\'s QR code'},
+            #         status=status.HTTP_403_FORBIDDEN
+            #     )
             
             # Get accessible sections for QR data
             accessible_sections = []
@@ -4949,3 +4950,59 @@ class VisitorBulkIDCardView(APIView):
             
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+# Add this to your views.py - Temporary debug endpoint
+
+class VisitorQRCodeDebugView(APIView):
+    """
+    Debug endpoint to see what data is encoded in the QR code
+    URL: /account/api/visitors/<int:pk>/qr-code-debug/
+    """
+    permission_classes = [IsAuthenticated, IsEmployee]
+    
+    def get(self, request, pk):
+        try:
+            visitor = Visitor.objects.get(pk=pk)
+            
+            # Get the same QR data that would be encoded
+            accessible_sections = []
+            for section in visitor.get_consensus_approved_sections():
+                accessible_sections.append({
+                    'id': section.id,
+                    'name': section.name,
+                    'requires_escort': section.requires_escort
+                })
+            
+            # This is exactly what gets encoded in the QR code
+            qr_data = {
+                'type': 'visitor_checkin',
+                'visitor_id': visitor.id,
+                'redirect_url': f"https://vmsfrontend2026.z29.web.core.windows.net/#/visitor/{visitor.id}",
+                'visitor_info': {
+                    'visitor_id': visitor.id,
+                    'full_name': visitor.full_name,
+                    'email': visitor.email,
+                    'phone_number': visitor.phone_number,
+                    'company_name': visitor.company_name,
+                    'purpose_of_visit': visitor.purpose_of_visit,
+                    'designated_check_in': visitor.designated_check_in.isoformat() if visitor.designated_check_in else None,
+                    'designated_check_out': visitor.designated_check_out.isoformat() if visitor.designated_check_out else None,
+                    'site': visitor.site.name if visitor.site else None,
+                    'status': visitor.status,
+                    'accessible_sections': accessible_sections
+                },
+                'api_base_url': 'https://vms-backend-drf-avdygnb6afcchbhg.centralindia-01.azurewebsites.net'
+            }
+            
+            return Response({
+                'visitor_id': visitor.id,
+                'visitor_name': visitor.full_name,
+                'qr_data_encoded': qr_data,
+                'json_preview': json.dumps(qr_data, indent=2),
+                'redirect_url_in_qr': qr_data['redirect_url']
+            })
+            
+        except Visitor.DoesNotExist:
+            return Response({'error': 'Visitor not found'}, status=404)

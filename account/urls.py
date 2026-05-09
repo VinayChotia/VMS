@@ -91,6 +91,7 @@ urlpatterns = [
 
      # QR Code and ID Card endpoints
     path('api/visitors/<int:pk>/qr-code/', views.VisitorQRCodeView.as_view(), name='visitor-qr-code'),
+    path('api/visitors/<int:pk>/qr-code-debug/', views.VisitorQRCodeDebugView.as_view(), name='visitor-qr-code-debug'),
     path('api/visitors/<int:pk>/id-card/', views.VisitorIDCardView.as_view(), name='visitor-id-card'),
     path('api/visitors/bulk-id-cards/', views.VisitorBulkIDCardView.as_view(), name='bulk-id-cards'),
 ]
