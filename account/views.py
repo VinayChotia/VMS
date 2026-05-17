@@ -4925,13 +4925,13 @@ class VisitorIDCardView(APIView):
             visitor = Visitor.objects.get(pk=pk)
             
             # Check permission
-            if not (request.user.is_superuser or 
-                    visitor.created_by == request.user or
-                    visitor.selected_approvers.filter(id=request.user.id).exists()):
-                return Response(
-                    {'error': 'You do not have permission to generate ID card for this visitor'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
+            # if not (request.user.is_superuser or 
+            #         visitor.created_by == request.user or
+            #         visitor.selected_approvers.filter(id=request.user.id).exists()):
+            #     return Response(
+            #         {'error': 'You do not have permission to generate ID card for this visitor'},
+            #         status=status.HTTP_403_FORBIDDEN
+            #     )
             
             # Check if visitor can check in
             if visitor.status not in ['approved', 'partially_approved']:
