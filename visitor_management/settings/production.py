@@ -291,7 +291,7 @@ STORAGES = {
     },
 }
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, '/home/site/wwwroot/staticfiles')
 STATIC_URL = '/static/'
 
 # Media files configuration for Azure
