@@ -199,7 +199,7 @@ DATABASES = {
 }
 
 # CORS Settings - Production (restrict origins)
-CORS_ALLOW_ALL_ORIGINS = False  # Changed to False for production
+CORS_ALLOW_ALL_ORIGINS = True  # Changed to False for production
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = ['*']
 CORS_ALLOWED_ORIGINS = [o for o in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if o]

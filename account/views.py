@@ -5097,7 +5097,7 @@ class VisitorQRCodeDebugView(APIView):
             qr_data = {
                 'type': 'visitor_checkin',
                 'visitor_id': visitor.id,
-                'redirect_url': f"https://vmsfrontend2026.z29.web.core.windows.net/#/visitor/{visitor.id}",
+                'redirect_url': f"https://vmsfrontendnew2026.z29.web.core.windows.net/#/visitor/{visitor.id}",
                 'visitor_info': {
                     'visitor_id': visitor.id,
                     'full_name': visitor.full_name,
@@ -5111,7 +5111,7 @@ class VisitorQRCodeDebugView(APIView):
                     'status': visitor.status,
                     'accessible_sections': accessible_sections
                 },
-                'api_base_url': 'https://vms-backend-drf-avdygnb6afcchbhg.centralindia-01.azurewebsites.net'
+                'api_base_url': 'vms-backend-drf-new.azurewebsites.net'
             }
             
             return Response({
