@@ -199,17 +199,17 @@ DATABASES = {
 }
 
 # CORS Settings - Production (restrict origins)
-CORS_ALLOW_ALL_ORIGINS = False  # Changed to False for production
+CORS_ALLOW_ALL_ORIGINS = True  # Changed to False for production
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = ['*']
-CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',')
+CORS_ALLOWED_ORIGINS = [o for o in os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if o]
 # Example: CORS_ALLOWED_ORIGINS = ['https://yourdomain.com', 'https://www.yourdomain.com']
 
 # Add your frontend URL to allowed origins
 if os.environ.get('FRONTEND_URL'):
     CORS_ALLOWED_ORIGINS.append(os.environ.get('FRONTEND_URL'))
 
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+CSRF_TRUSTED_ORIGINS = [o for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o]
 # Example: CSRF_TRUSTED_ORIGINS = ['https://yourdomain.com']
 
 # Security Settings for Production
